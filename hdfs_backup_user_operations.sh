@@ -46,7 +46,6 @@ is_hdfs_dir() {
 
 is_snapshottable() {
   #set -x
-  echo "${FUNCNAME}"
   local dir=$1
   is_hdfs_dir ${dir}
 
@@ -77,6 +76,8 @@ list_snapshottable_dirs() {
 
 create_snapshot () {
   #  hdfs dfs -createSnapshot <path> [<snapshotName>]
+  [[ $# == 1 ]] || \
+  { echo "$FUNCNAME: Please provide a path "; exit 1 ;}
   hdfs dfs -createSnapshot $1
 }
 
@@ -91,9 +92,12 @@ list_all_snapshots () {
 
 check_and_apply_retention() {
 
+   [[ $# == 1 || $# == 2  ]]  || ( usage && exit 1 )
 
   local dir=$1  ; local nb_snapshots_to_retain=$2
-  [[ -z ${nb_snapshots_to_retain} ]] && nb_snapshots_to_retain=${DEFAULT_NB_SNAPSHOTS}
+  [[ -z ${nb_snapshots_to_retain} ]] && nb_snapshots_to_retain=${DEFAULT_NB_SNAPSHOTS} && \
+  echo "INFO number of snapshots to retain not set, applying default retention= ${DEFAULT_NB_SNAPSHOTS}"
+
   # check
   is_snapshottable ${dir} && is_positive_integer ${nb_snapshots_to_retain}
 
@@ -104,11 +108,11 @@ check_and_apply_retention() {
   if [[ ${nb_existing_snapshots} > ${nb_snapshots_to_retain} ]]; then
     local nb_snapshots_to_remove=$((nb_existing_snapshots - nb_snapshots_to_retain ))
     local arr_snapshots_to_remove=( ${arr_existing_snapshots[@]:0:$nb_snapshots_to_remove} )
-    echo "arr_snapshots_to_remove" $arr_snapshots_to_remove
+    #echo "arr_snapshots_to_remove" $arr_snapshots_to_remove
 
     for snap_to_remove in ${arr_snapshots_to_remove[@]}; do
       snap_version_name=$( echo ${snap_to_remove} | awk  -F  "/"  '{ print $NF }' )
-      echo "snap to remove" ${snap_to_remove}
+      #echo "snap to remove" ${snap_to_remove}
       # echo "snap_version_name to remove $snap_version_name"
       #hdfs dfs -ls ${snap_to_remove}
       hdfs dfs -deleteSnapshot ${dir} ${snap_version_name}
@@ -116,9 +120,11 @@ check_and_apply_retention() {
 
   else
     echo "INFO no additional snapnshots to remove, ${nb_existing_snapshots} snapnshots exists for ${dir} directory  "
-    echo "list of existing_snapshots ${arr_existing_snapshots[@]}"
-    return 0
+    echo "INFO list of existing_snapshots"
+    printf "%s\n"  "${arr_existing_snapshots[@]}"
+    exit 0
   fi
+
 }
 
 
