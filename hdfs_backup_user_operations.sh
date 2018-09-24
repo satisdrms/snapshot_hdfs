@@ -37,10 +37,8 @@ is_positive_integer() {
 
 is_hdfs_dir() {
   local dir=$1
-  { [[ -z  ${dir} ]] && echo "$FUNCNAME: ERROR empty argument" && exit 1; }
-
+  [[ -z  ${dir} ]] && echo "$FUNCNAME: ERROR empty argument" && exit 1
   hadoop fs -test -d ${dir} || { echo "$FUNCNAME: ERROR directory ${dir} does not exist" && exit 1 ;}
-
 }
 
 
@@ -48,19 +46,18 @@ is_snapshottable() {
   #set -x
   local dir=$1
   is_hdfs_dir ${dir}
-
   local -a  list_user_snapshots=( $( list_snapshottable_dirs ) )
   #check if dir belongs to snapshottable dirs
   #check if a bash variable is unset or set to the empty string
    [[ ! -z $( printf '%s\n' ${list_user_snapshots[@]} | grep -P "^${dir}$" ) ]] || \
-   { echo "${dir} does not belong to the list of snapshottable directories for user ${USER}" && exit 1;}
+   { echo "${dir} does not belong to the list of snapshottable directories for user ${USER}" && exit 1 ;}
 
 }
 
 delete_snapshot() {
   #  hdfs dfs -deleteSnapshot <path> <snapshotName>
   local path=$1 ; local snapshot_name=$2
-   hdfs dfs -deleteSnapshot ${path} ${snapshot_name} >&2
+   hdfs dfs -deleteSnapshot ${path} ${snapshot_name}
 }
 
 ###########################################
@@ -83,16 +80,18 @@ create_snapshot () {
 
 # get list of retained snapnshots in chronological order
 list_all_snapshots () {
+  [[ $# == 1 ]] || \
+  { echo "$FUNCNAME: Please provide a path "; exit 1 ;}
   local dir=$1
   is_snapshottable ${dir}
   local res=$(hdfs dfs -ls -t  ${dir}/.snapshot | awk '{print $NF}' | grep "^/")
-  [[ -z ${res} ]]  && "$FUNCNAME: ERROR no snapshots created yet for directory ${dir}" && exit 1 || echo ${res}
+  { [[ -z ${res} ]]  && "$FUNCNAME: ERROR no snapshots created yet for directory ${dir}" && exit 1 ;} || echo ${res}
 
 }
 
 check_and_apply_retention() {
 
-   [[ $# == 1 || $# == 2  ]]  || ( usage && exit 1 )
+   [[ $# == 1 || $# == 2  ]]  || { usage && exit 1 ;}
 
   local dir=$1  ; local nb_snapshots_to_retain=$2
   [[ -z ${nb_snapshots_to_retain} ]] && nb_snapshots_to_retain=${DEFAULT_NB_SNAPSHOTS} && \
@@ -126,6 +125,7 @@ check_and_apply_retention() {
   fi
 
 }
+
 
 
 [[ $# == 0 ]] && usage && exit 1 ;
