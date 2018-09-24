@@ -4,7 +4,6 @@
 #should exit the script if any statement returns a non-true return value.
 set -e    # abort on unbound variable
 set -o pipefail  # don't hide errors within pipes
-echo "hello"
 
 usage() {
     cat <<- EOF
@@ -35,18 +34,19 @@ is_positive_integer() {
     { echo "$FUNCNAME: ERROR $1 must be a valid integer and > 0" ; exit 1 ;}
 }
 
+
 is_hdfs_dir() {
   local dir=$1
-  { [[ -z  ${dir} ]] && echo "$FUNCNAME: ERROR empty argument" && return 1; }
+  { [[ -z  ${dir} ]] && echo "$FUNCNAME: ERROR empty argument" && exit 1; }
 
-  hadoop fs -test -d ${dir} || { echo "$FUNCNAME: ERROR directory ${dir} does not exist" && return 1 ;}
-echo "FUNCNAME:"
+  hadoop fs -test -d ${dir} || { echo "$FUNCNAME: ERROR directory ${dir} does not exist" && exit 1 ;}
+
 }
 
 
 is_snapshottable() {
   #set -x
-  echo "$FUNCNAME"
+  echo "${FUNCNAME}"
   local dir=$1
   is_hdfs_dir ${dir}
 
