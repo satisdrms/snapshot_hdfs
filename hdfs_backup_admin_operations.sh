@@ -31,11 +31,6 @@ is_hdfs_dir() {
   hadoop fs -test -d ${dir} || { echo "$FUNCNAME: ERROR directory ${dir} does not exist" && return 1 ;}
 }
 
-list_snapshottable_dirs() {
-  echo "$FUNCNAME"
-  #  hdfs lsSnapshottableDir
-  hdfs lsSnapshottableDir |  awk '{print $NF}' | grep "^/"
-}
 
 #idempotent operation
 # To allow snapnshot upon a dir you must be a SUPERUSER, the owner of the dir is NOT allowed
