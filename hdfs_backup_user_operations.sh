@@ -30,7 +30,7 @@ DEFAULT_NB_SNAPSHOTS=7
 ###utlities###
 
 is_positive_integer() {
-    [[ $# == 1 ]] && [[ $1 =~ ^[0-9]+$ ]] && [[ $1 > 0 ]] || \
+    [[ $# -eq 1 ]] && [[ "$1" =~ ^[0-9]+$ ]] && [[ $1 -gt 0 ]] || \
     { echo "$FUNCNAME: ERROR $1 must be a valid integer and > 0" ; exit 1 ;}
 }
 
@@ -73,14 +73,14 @@ list_snapshottable_dirs() {
 
 create_snapshot () {
   #  hdfs dfs -createSnapshot <path> [<snapshotName>]
-  [[ $# == 1 ]] || \
+  [[ $# -eq 1 ]] || \
   { echo "$FUNCNAME: Please provide a path "; exit 1 ;}
   hdfs dfs -createSnapshot $1
 }
 
 # get list of retained snapnshots in chronological order
 list_all_snapshots () {
-  [[ $# == 1 ]] || \
+  [[ $# -eq 1 ]] || \
   { echo "$FUNCNAME: Please provide a path "; exit 1 ;}
   local dir=$1
   is_snapshottable ${dir}
@@ -91,7 +91,7 @@ list_all_snapshots () {
 
 check_and_apply_retention() {
 
-   [[ $# == 1 || $# == 2  ]]  || { usage && exit 1 ;}
+   [[ $# -eq 1 || $# -eq 2  ]]  || { usage && exit 1 ;}
 
   local dir=$1  ; local nb_snapshots_to_retain=$2
   [[ -z ${nb_snapshots_to_retain} ]] && nb_snapshots_to_retain=${DEFAULT_NB_SNAPSHOTS} && \
@@ -104,7 +104,7 @@ check_and_apply_retention() {
   local arr_existing_snapshots=( $(list_all_snapshots ${dir}) )
   local nb_existing_snapshots=${#arr_existing_snapshots[@]}
 
-  if [[ ${nb_existing_snapshots} > ${nb_snapshots_to_retain} ]]; then
+  if [[ ${nb_existing_snapshots} -gt ${nb_snapshots_to_retain} ]]; then
     local nb_snapshots_to_remove=$((nb_existing_snapshots - nb_snapshots_to_retain ))
     local arr_snapshots_to_remove=( ${arr_existing_snapshots[@]:0:$nb_snapshots_to_remove} )
     #echo "arr_snapshots_to_remove" $arr_snapshots_to_remove
@@ -128,7 +128,7 @@ check_and_apply_retention() {
 
 
 
-[[ $# == 0 ]] && usage && exit 1 ;
+[[ $# -eq 0 ]] && usage && exit 1 ;
 
 case "$1" in
   list_snapshottable_dirs)
