@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 # set -x
 # include set -e at the top. This tells bash that it
 #should exit the script if any statement returns a non-true return value.
